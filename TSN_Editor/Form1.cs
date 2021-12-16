@@ -51,10 +51,12 @@ namespace TSN_Editor
             if (checkBox1.Checked)
             {
                 richTextBox2.Text = "Parse files and Import to Mysql";
+                // run edit_league.py from the path stored in richTextBox3.Text with the argument of import=yes
             }
             if (!checkBox1.Checked)
             {
                 richTextBox2.Text = "Parse files and NO IMPORT";
+                // run edit_league.py from the path stored in richTextBox3.Text with the argument of import=no
             }
 
         }
