@@ -50,19 +50,38 @@ namespace TSN_Editor
         {
             if (checkBox1.Checked)
             {
-                richTextBox2.Text = "Parse files and Import to Mysql";
-                // run edit_league.py from the path stored in richTextBox3.Text with the argument of import =yes//
-                // C to close the window K to leave it open
-                string strCmdPath = richTextBox3.Text;
-                string strCmdText = "/K " + strCmdPath + "\\edit_league.py";
-                System.Diagnostics.Process.Start("CMD.exe", strCmdText);
+                if (richTextBox3.TextLength < 2)
+                {
+                    string message = "No script path selected";
+                    string title = "Script Path Error";
+                    MessageBox.Show(message, title, MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
+                else
+                {
+                    richTextBox2.Text = "Parse files and Import to Mysql";
+                    // run edit_league.py from the path stored in richTextBox3.Text with the argument of import=yes
+                    // C to close the window K to leave it open
+                    string strCmdPath = richTextBox3.Text;
+                    string strCmdText = "/K " + strCmdPath + "\\edit_league.py";
+                    System.Diagnostics.Process.Start("CMD.exe", strCmdText);
+                }                
             }
             if (!checkBox1.Checked)
             {
-                richTextBox2.Text = "Parse files and NO IMPORT";
-                // run edit_league.py from the path stored in richTextBox3.Text with the argument of import=no
-                string strCmdText = "/K ping localhost";
-                System.Diagnostics.Process.Start("CMD.exe", strCmdText);
+                if (richTextBox3.TextLength < 2)
+                {
+                    string message = "No script path selected";
+                    string title = "Script Path Error";
+                    MessageBox.Show(message, title, MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
+                else
+                {
+                    richTextBox2.Text = "Parse files and NO IMPORT";
+                    // run edit_league.py from the path stored in richTextBox3.Text with the argument of import=no
+                    string strCmdPath = richTextBox3.Text;
+                    string strCmdText = "/K " + strCmdPath + "\\edit_league.py";
+                    System.Diagnostics.Process.Start("CMD.exe", strCmdText);
+                }                
             }
 
         }
