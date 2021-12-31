@@ -2,7 +2,7 @@
 
 $DefaultFile = "D:\testing\trades\32nrb001.pyr"
 
-$ASNFile = Read-host "Enter the path to ASN file [Default: $DefaultFile]"
+$ASNFile = Read-host "Enter the path to PYR file [Default: $DefaultFile]"
 if ($ASNFile -eq "")
 {
 	$ASNFile = $DefaultFile
@@ -14,7 +14,8 @@ if (test-path $ASNFile) {} Else {
 }
 
 #the outfile is .dyr, and delete it if it exists...
-$outFIle = $ASNFile  -replace '\.pyr$','.dyr'
+$outFIle = $ASNFile  -replace '\.pyr$',''
+$outFIle = "$ASNFile.dyr"
 if (test-path $outFIle)
 {
 	remove-item $OutFile -force
