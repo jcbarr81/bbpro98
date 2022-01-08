@@ -1,5 +1,9 @@
-# This will decrypt the pyr file
+# This will export the pyr file
+#converting date (get-date(1-0-0001)).adddays(723507 -366)
+
 $erroractionpreference='inquire'
+$ThePath = (Get-ChildItem $MyInvocation.MyCommand.Definition).DirectoryName
+
 
 $DefaultFile = "D:\testing\trades\32nrb001.pyr"
 
@@ -9,18 +13,20 @@ if ($ASNFile -eq "")
 	$ASNFile = $DefaultFile
 }
 
-
 $ASNFile = $ASNFile -replace '"',''
-
 
 if (test-path $ASNFile) {} Else { 
 	"No file found:"
 	exit 
 }
 
-#the outfile is .dyr, and delete it if it exists...
-$outFIle = $ASNFile  -replace '\.pyr$',''
-$outFIle = "$ASNFile.dyr"
+$LeagueName = (gi $ASNFile).basename
+if (test-path "$ThePath\$LeagueName") {} else {
+	mkdir "$ThePath\$LeagueName"
+}
+
+
+$outFIle = "$ThePath\$LeagueName\$LeagueName-Players.csv"
 if (test-path $outFIle)
 {
 	remove-item $OutFile -force
@@ -28,7 +34,7 @@ if (test-path $outFIle)
 
 # LOAD FILE
 $bytes  = [System.IO.File]::ReadAllBytes($ASNFile)
-$newbytes  = [System.IO.File]::ReadAllBytes($ASNFile)
+#$newbytes  = [System.IO.File]::ReadAllBytes($ASNFile)
 $FileSize = $($bytes.count)
 "FileSize: $($bytes.count)"
 
@@ -38,8 +44,7 @@ $FileSize = $($bytes.count)
 $Start = 1*$bytes[0]
 $offset = 1*$bytes[1]
 
-"START: $Start"
-"OFFSET: $offset"
+"Encryption $Start / $offset"
 
 #Build Cryption Array
 
@@ -77,7 +82,7 @@ foreach ($x in (0..255)){
 	$pos %= 256
 }
 #show the array
-$Crypt | ft
+#$Crypt | ft
 
 #make the arrays for encrypting and decrypting
 $EnCrypt = @{}
@@ -94,7 +99,105 @@ foreach ($x in (0..255)){
 }
 
 "DECRYPTING..." 
+#start at 192
+$PlayerData= [System.Collections.ArrayList]@()
+$Header = @()
+$Header += "ID"
+1..9 | % {$Header += "Gat$_"}
+$Header += "TotG"
+$Header += "INJ1"
+$Header += "INJ2"
+$Header += "DOB"
+$Header += "FirstName"
+$Header += "LastName"
+$Header += "Years"
+$Header += "Bat"
+$Header += "Throw"
+$Header += "Skin"
+$Header += "Pos"
+$Header += "Delivery"
+#ratings pot
+"ch ph sp as hr en co fb cb si sl cu sc kn" -split " " | %{
+	$Header += "$_-p"
+}
+1..9 | % {$Header += "fa$_-p"}
 
+#ratings act
+"ch ph sp as hr en co fb cb si sl cu sc kn" -split " " | %{
+	$Header += "$_-a"
+}
+1..9 | % {$Header += "fa$_-a"}
+
+"pl gf ve lo pgf" -split " " | %{
+	$Header += "mod-$_"
+}
+0..9 | % {$Header += "hitmod$_"}
+0..9 | % {$Header += "pitmod$_"}
+
+
+
+#$Header 
+($Header.count)..143 | % {$Header += "Un$_" }
+
+$PlayerData.Add($Header -join ',')
+
+"Parsing Player Ratings/Data"
+$offset = 192
+while ($offset -lt ($FileSize - 1))
+{
+	#$offset
+	$Data = @()
+	1..13 | % {
+		$Data += 1*$DeCrypt[1*$bytes[$offset]]  + 256*$DeCrypt[1*$bytes[$offset+1]]
+		$offset += 2
+	}
+	1..1 | % {
+			$Data += 1*$DeCrypt[1*$bytes[$offset]]  + 256*$DeCrypt[1*$bytes[$offset+1]] + 256*256*$DeCrypt[1*$bytes[$offset+2]] + 256*256*256*$DeCrypt[1*$bytes[$offset+3]]
+			$offset += 4
+	}
+	
+	1..2 | % {
+		$text = ""
+		1..17 | % {
+		
+			$text += [System.Text.Encoding]::ASCII.GetString($DeCrypt[1*$bytes[$offset]])
+			$Offset++	#
+		}
+		$text = ($text -split [char]0)[0]
+		$Data += $text
+	}
+	1..128 | % {
+		$Data += 1*$DeCrypt[1*$bytes[$offset]]  #+ 256*$DeCrypt[1*$bytes[$offset+1]]
+		$offset += 1
+	}
+	
+	if ((1*$data[0] % 25) -eq 0) { $data[0] }
+	
+	#$PlayerData+= $data
+	$null = $PlayerData.Add($data -join ",")
+	
+}
+
+#$PlayerData | ft *
+
+$PlayerCSV = convertfrom-csv $PlayerData
+$PlayerCSV | select -first 2 | ft * -auto
+"writing to: $outfile "
+$PlayerCSV | export-csv $outFIle -notype
+$outFIle | write-host -fore "RED"
+
+#gci $outfile
+
+exit
+####################################################
+####################################################
+##########################
+##########################
+##########################
+##########################
+####################################################
+####################################################
+####################################################
 #the first four bytes should be this for an decrypted array
 $newbytes[0] = 0
 $newbytes[1] = 1
