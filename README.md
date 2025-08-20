@@ -1,19 +1,67 @@
-# bbpro98
-You will want to make a copy of your .ASN file before running any of these tools.
-The tool will create a folder for the league file in the same folder where the script resides.
+# Baseball Pro '98 Tools
 
-# Export Rosters/Lineups/Rotations and Re-import
-1. First you will want to run the ASN-Extractor-B.ps1. You will be asked the full path to the .ASN file that you want to make changes to. If you want, you can edit the $DefaultFile variable and point it to where you are going to keep that file, to make things easier.
-2. The extractor will create a folder with the same name as your league. It will place CSV files inside that folder. There will be one for the entire league, as well as one for each team.
-3. Make the needed changes to the CSV file and save it.
-4. Next run the ASN-Importer-A.ps1. You will be asked for the full path to the CSV file that you want to import. Just like the other script, you can modify the default paths so that you don't  have to enter them every time.
-5. The script will check the file and then inform you of how many changes have been made. If this does not match what you did, then cancel the script. If it matches up then confirm that you want to do the import.
-6. A backup of your ASN file will be made with the current date appended to the file name. The new updated ASN file will be created in the same location as the original.
-7. Copy that ASN file back to the appropriate BBPRO98 directory and ENJOY.
+This repository contains PowerShell scripts and helper functions for editing Baseball Pro '98 league files. The tools decrypt the game's binary formats, expose team and player data in CSV form, and write modifications back to the encrypted files.
 
-# Editing Players
-1. Run the Export-pyr-A.ps1 script and input the full path to the PYR file that you want to decode.
-2. The script will place a CSV file with all the player information in a folder named the same as your league. This folder will be placed in the folder where the script resides.
-3. Make any changes that you wish to the player file and save. Keep it in the CSV format.
-4. Run Import-pyr-A.ps1. Input the path to the PYR file that you are modifying. Input the path to the CSV that you have made changes to.
-5. Once import is complete, copy the PYR file back to the appropriate BBPRO98 directory and ENJOY.
+> **Make backups** – many scripts overwrite your `.ASN` and `.PYR` files. Always keep a copy before running any importer.
+
+## Script-by-Script Documentation
+
+### `ASN-Extractor-A.ps1`
+Prototype exporter that prompts for an `.ASN` file, decrypts each 312‑byte team section, and writes a roster/lineup/rotation CSV per team plus a combined "Roster-All" CSV.
+
+### `ASN-Extractor-B.ps1`
+Refined extractor that accepts file paths as parameters, sanitizes input, creates a league-named folder, and exports team CSVs along with a master CSV.
+
+### `ASN-Importer-A.ps1`
+Imports edited roster CSVs back into an `.ASN` file. Backs up the original, rebuilds encryption tables, rewrites roster slots, batting orders, defensive alignments, and pitcher rotations, and outputs the updated file.
+
+### `BBPRO98-Functions.ps1`
+Reusable function library providing:
+
+- **Get-BBDecrypt / Get-BBEncrypt** – build lookup tables for decrypting/encrypting using start and offset keys.
+- **Get-ASNRoster / Set-ASNRoster** – parse or rewrite team sections in `.ASN` files.
+- **Get-ASNData** – read team metadata (IDs, cities, nicknames, colors, etc.).
+- **Write-DSNFile** – create a fully decrypted `.DSN` copy of an `.ASN` file.
+- **Get-PYRPlayers** – decrypt a `.PYR` player database and emit player records.
+- **Get-PYFIDs / Set-PYFIDs** – read or update the free‑agent ID list in `.PYF` files; `Get-PYCIDs` wraps these for `.PYC` files.
+- **BB-DropPlayers / BB-ADDPlayers** – remove or insert players while keeping free‑agent lists in sync.
+- **Get-BBPROFunctions** – list functions defined in the library.
+- **Template** – minimal example function.
+
+### `Decrypt-pyr-E.ps1`
+Stand‑alone `.PYR` decrypter that zeroes the header and writes a raw `.dyr` file.
+
+### `Export-pyr-A.ps1`
+Exports player data from a `.PYR` file to CSV. Decrypts each 192‑byte player block, decoding IDs, biographical info, handedness, ratings, and modifiers.
+
+### `Find-asn-Sections.ps1`
+Diagnostic tool that walks through an `.ASN` file from offset `0x202`, printing section offsets and validating the trailing checksum bytes.
+
+### `Import-pyr-A.ps1`
+Imports edited player CSVs back into a `.PYR` file. Backs up the original, converts CSV values into encrypted bytes, and rewrites each player block.
+
+### `Test-Function.ps1`
+Ad‑hoc demo script showing how to invoke the function library (loading functions, reading players and teams, dropping/adding players, and updating free‑agent lists).
+
+## Usage Notes
+
+1. **Backups:** Many scripts automatically create timestamped backups before overwriting league files. Ensure you have sufficient disk space.
+2. **CSV Integrity:** Import scripts require complete CSVs; missing rows or columns will corrupt the league. Roster CSV header: `TeamID,ABRE,Jersey,ACT,AAA,AAAType,Low,Limbo,boLH,boRH,defLH,defRH,Pit`. Player CSV contains 144 columns covering IDs, names, ratings, and modifiers.
+3. **Encryption Keys:** Each `.ASN` and `.PYR` file stores two key bytes (start and offset). The scripts rebuild lookup tables for proper decryption/encryption before reading or writing data.
+4. **Free Agent Lists:** `.PYF` (and `.PYC`) files maintain the list of unsigned player IDs. `BB-DropPlayers` and `BB-ADDPlayers` automatically synchronize these lists when rosters change.
+5. **Prerequisites:** Scripts are PowerShell (`.ps1`) and expect Windows-style paths. Adjust `$DefaultFile` variables or provide full paths when prompted.
+
+## Basic Workflows
+
+### Rosters, Lineups, and Rotations
+1. Run `ASN-Extractor-B.ps1` and provide the full path to the `.ASN` file.
+2. Edit the generated CSVs inside the league-named folder.
+3. Run `ASN-Importer-A.ps1` on the edited CSV to apply changes. A backup of the original `.ASN` will be created automatically.
+
+### Editing Players
+1. Run `Export-pyr-A.ps1` on your `.PYR` file to export player data to CSV.
+2. Modify the CSV, keeping all columns intact.
+3. Run `Import-pyr-A.ps1` to write the edits back into the `.PYR` file. A backup copy will be created.
+
+Enjoy managing your Baseball Pro '98 league!
+
