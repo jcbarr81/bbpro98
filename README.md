@@ -4,16 +4,52 @@ This repository contains PowerShell scripts and helper functions for editing Bas
 
 > **Make backups** – many scripts overwrite your `.ASN` and `.PYR` files. Always keep a copy before running any importer.
 
+## Getting Started
+
+All utilities are plain PowerShell scripts. Run them from a PowerShell console (`pwsh` on modern systems or `powershell.exe` on Windows) and supply the paths requested at the prompts. The scripts ship with example paths that assume Windows-style directories; adjust those defaults in the files or type your own path when prompted.
+
+Example:
+
+```powershell
+pwsh ./Export-pyr-A.ps1
+```
+
+Press **Enter** to accept the default path shown in brackets or type a full path to use a different league file.
+
 ## Script-by-Script Documentation
 
 ### `ASN-Extractor-A.ps1`
 Prototype exporter that prompts for an `.ASN` file, decrypts each 312‑byte team section, and writes a roster/lineup/rotation CSV per team plus a combined "Roster-All" CSV.
 
+**Usage**
+
+```powershell
+pwsh ./ASN-Extractor-A.ps1
+```
+
+The script asks for the path to an `.ASN` file. A folder named after the league is created in the script's directory containing one CSV per team and a master `<League>-Roster-All.csv` file.
+
 ### `ASN-Extractor-B.ps1`
 Refined extractor that accepts file paths as parameters, sanitizes input, creates a league-named folder, and exports team CSVs along with a master CSV.
 
+**Usage**
+
+```powershell
+pwsh ./ASN-Extractor-B.ps1
+```
+
+Provide the path to the `.ASN` file when prompted. The tool writes per-team CSV files and a consolidated roster to a new folder named after the league file.
+
 ### `ASN-Importer-A.ps1`
 Imports edited roster CSVs back into an `.ASN` file. Backs up the original, rebuilds encryption tables, rewrites roster slots, batting orders, defensive alignments, and pitcher rotations, and outputs the updated file.
+
+**Usage**
+
+```powershell
+pwsh ./ASN-Importer-A.ps1
+```
+
+Supply the target `.ASN` file and the edited `*-Roster-All.csv` produced by an extractor. A timestamped backup of the original `.ASN` is created before rosters and lineups are overwritten.
 
 ### `BBPRO98-Functions.ps1`
 Reusable function library providing:
@@ -28,20 +64,73 @@ Reusable function library providing:
 - **Get-BBPROFunctions** – list functions defined in the library.
 - **Template** – minimal example function.
 
+**Usage**
+
+Dot‑source the file to load the functions into your session and list them:
+
+```powershell
+. ./BBPRO98-Functions.ps1
+Get-BBPROFunctions
+```
+
+Functions can then be called directly, e.g. `Get-ASNRoster -ASNFile 'D:\League\32NEW001.ASN'` or `BB-DropPlayers -ASNFile $asn -PlayerIDs @(100,101)`.
+
 ### `Decrypt-pyr-E.ps1`
 Stand‑alone `.PYR` decrypter that zeroes the header and writes a raw `.dyr` file.
+
+**Usage**
+
+```powershell
+pwsh ./Decrypt-pyr-E.ps1
+```
+
+Enter the path to a `.PYR` file. A decrypted copy with the `.dyr` extension is written alongside the original.
 
 ### `Export-pyr-A.ps1`
 Exports player data from a `.PYR` file to CSV. Decrypts each 192‑byte player block, decoding IDs, biographical info, handedness, ratings, and modifiers.
 
+**Usage**
+
+```powershell
+pwsh ./Export-pyr-A.ps1
+```
+
+After selecting the `.PYR` file, the script outputs `<LeagueName>-Players.csv` inside a new league-named folder.
+
 ### `Find-asn-Sections.ps1`
 Diagnostic tool that walks through an `.ASN` file from offset `0x202`, printing section offsets and validating the trailing checksum bytes.
+
+**Usage**
+
+```powershell
+pwsh ./Find-asn-Sections.ps1
+```
+
+Respond with the path to an `.ASN` file to display the offsets and lengths of each binary section for troubleshooting.
 
 ### `Import-pyr-A.ps1`
 Imports edited player CSVs back into a `.PYR` file. Backs up the original, converts CSV values into encrypted bytes, and rewrites each player block.
 
+**Usage**
+
+```powershell
+pwsh ./Import-pyr-A.ps1
+```
+
+You will be prompted for the `.PYR` file and a 144‑column player CSV. The script backs up the original file before encrypting the CSV values back into the player database.
+
 ### `Test-Function.ps1`
 Ad‑hoc demo script showing how to invoke the function library (loading functions, reading players and teams, dropping/adding players, and updating free‑agent lists).
+
+**Usage**
+
+Edit the top of the script to point `$ASN`, `$PYR`, and related variables at your league files, then run:
+
+```powershell
+pwsh ./Test-Function.ps1
+```
+
+It demonstrates loading `BBPRO98-Functions.ps1` and calling several functions to manipulate rosters and free agents.
 
 ## Usage Notes
 
