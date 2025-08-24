@@ -16,6 +16,20 @@ pwsh ./Export-pyr-A.ps1
 
 Press **Enter** to accept the default path shown in brackets or type a full path to use a different league file.
 
+## GUI Front End
+
+A basic Windows Forms launcher is available to run the tools without
+typing commands. Invoke it with:
+
+```powershell
+pwsh ./BBPRO98-GUI.ps1
+```
+
+Choose a script from the drop‑down list, browse to the required input
+files, optionally select an output folder, and click **Run Script** to
+execute the chosen utility. Script output is shown in the log box and can
+be saved to the specified folder.
+
 ## Script-by-Script Documentation
 
 ### `ASN-Extractor-A.ps1`
