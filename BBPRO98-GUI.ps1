@@ -53,6 +53,12 @@ $btnRun.Size = New-Object Drawing.Size(100,25)
 $btnRun.Text = 'Run Script'
 $form.Controls.Add($btnRun)
 
+# status label to show script progress
+$lblStatus = New-Object Windows.Forms.Label
+$lblStatus.Location = New-Object Drawing.Point(120,235)
+$lblStatus.Size = New-Object Drawing.Size(470,23)
+$form.Controls.Add($lblStatus)
+
 $txtLog = New-Object Windows.Forms.TextBox
 $txtLog.Location = New-Object Drawing.Point(10,260)
 $txtLog.Size = New-Object Drawing.Size(580,110)
@@ -101,6 +107,8 @@ $btnRun.Add_Click({
     $txtLog.Clear()
     $sel = $scriptDefinitions | Where-Object { $_.Name -eq $combo.SelectedItem }
     if (-not $sel) { return }
+    $btnRun.Enabled = $false
+    $lblStatus.Text = 'Running...'
     $psi = New-Object Diagnostics.ProcessStartInfo
     # Use PowerShell Core if available, otherwise fall back to Windows PowerShell
     $psCmd = Get-Command pwsh -ErrorAction SilentlyContinue
@@ -120,9 +128,17 @@ $btnRun.Add_Click({
         if ($c -is [Windows.Forms.TextBox]) { $proc.StandardInput.WriteLine($c.Text) }
     }
     $proc.StandardInput.Close()
-    $proc.WaitForExit()
+
+    while (-not $proc.HasExited) {
+        Start-Sleep -Milliseconds 200
+        [System.Windows.Forms.Application]::DoEvents()
+    }
+
     $output = $proc.StandardOutput.ReadToEnd() + $proc.StandardError.ReadToEnd()
     $txtLog.Text = $output
+    $lblStatus.Text = 'Finished'
+    $btnRun.Enabled = $true
+    $proc.Close()
     if ($txtOut.Text -and (Test-Path $txtOut.Text)) {
         $time = Get-Date -Format 'yyyyMMdd-HHmmss'
         $log = Join-Path $txtOut.Text "$($sel.Name)-$time.log"
