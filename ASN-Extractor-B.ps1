@@ -241,11 +241,12 @@ foreach ($o in $offsets | ? {$_.length -eq 312})
 	#"Length: $($section.length)" #= $bytes[(17 + $o.offset)..($o.offset + 309)]
 	#$section | select -first 20
 	""
-	$cols = 13
-	$data = $null
-	$data = @()
-	$data += (0..$cols) -join ','
-	(1..75) | % {$data += ((0..$cols) | %{","} )-join ''}
+        # build a blank table with 13 columns for roster data
+        $cols = 12
+        $data = $null
+        $data = @()
+        $data += (0..$cols) -join ','
+        (1..75) | % { $data += ((1..$cols) | %{","}) -join '' }
 
 	$data = convertfrom-csv $data
 
