@@ -1,7 +1,8 @@
 # This will Extract parts of ASN
 param(
     [Parameter(ValueFromPipeline = $true, ValueFromPipelineByPropertyName = $true)]
-    [string]$ASNFile
+    [string]$ASNFile,
+    [string]$OutputDir
 )
 
 $ErrorActionPreference = 'Stop'
@@ -27,8 +28,15 @@ if (-not (Test-Path $ASNFile)) {
     exit 1
 }
 
+$OutputDir = $OutputDir -replace '"',''
+if ($OutputDir) {
+    $BaseOut = $OutputDir
+} else {
+    $BaseOut = $ScriptPath
+}
+
 $LeagueName = (Get-Item $ASNFile).BaseName
-$OutputDir = Join-Path $ScriptPath $LeagueName
+$OutputDir = Join-Path $BaseOut $LeagueName
 if (-not (Test-Path $OutputDir)) {
     New-Item -ItemType Directory -Path $OutputDir | Out-Null
 }
