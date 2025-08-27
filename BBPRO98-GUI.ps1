@@ -64,21 +64,21 @@ function Set-Inputs {
     $pnlInputs.Controls.Clear()
     $sel = $scriptDefinitions | Where-Object { $_.Name -eq $combo.SelectedItem }
     if (-not $sel) { return }
-    $i = 0
-    foreach ($prompt in $sel.Inputs) {
+    for ($i = 0; $i -lt $sel.Inputs.Count; $i++) {
+        $prompt = $sel.Inputs[$i]
         $lbl = New-Object Windows.Forms.Label
-        $lbl.Location = New-Object Drawing.Point(0, $i*30)
+        $lbl.Location = [Drawing.Point]::new(0, $i * 30)
         $lbl.Size = New-Object Drawing.Size(100,23)
         $lbl.Text = $prompt
         $pnlInputs.Controls.Add($lbl)
 
         $txt = New-Object Windows.Forms.TextBox
-        $txt.Location = New-Object Drawing.Point(110, $i*30)
+        $txt.Location = [Drawing.Point]::new(110, $i * 30)
         $txt.Size = New-Object Drawing.Size(380,23)
         $pnlInputs.Controls.Add($txt)
 
         $btn = New-Object Windows.Forms.Button
-        $btn.Location = New-Object Drawing.Point(500, $i*30-1)
+        $btn.Location = [Drawing.Point]::new(500, ($i * 30) - 1)
         $btn.Size = New-Object Drawing.Size(70,23)
         $btn.Text = 'Browse'
         $btn.Add_Click({
@@ -86,7 +86,6 @@ function Set-Inputs {
             if ($dlg.ShowDialog() -eq 'OK') { $txt.Text = $dlg.FileName }
         })
         $pnlInputs.Controls.Add($btn)
-        $i++
     }
 }
 
