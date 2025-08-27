@@ -1,41 +1,38 @@
 # This will Extract parts of ASN
 param(
+    [Parameter(ValueFromPipeline = $true, ValueFromPipelineByPropertyName = $true)]
     [string]$ASNFile
 )
-$erroractionpreference='inquire'
 
-$ThePath = (Get-ChildItem $MyInvocation.MyCommand.Definition).DirectoryName
+$ErrorActionPreference = 'Stop'
 
-$DefaultFile = "D:\testing\identicals\3\32NEW001.ASN"
-$DefaultFile = "D:\testing\identicals\5\08NEW001.ASN"
-$DefaultFile = "D:\_DECRYPT\ASSN\28CAN001.ASN"
-$DefaultFile = "D:\testing\trades\32nrb001.ASN"
-$DefaultFile = "D:\_SourceCode\ASSN\08AAA001.ASN"
-$DefaultFile = "D:\testing\Assn\32nrb001-ASN.DEFAULT"
-$DefaultFile = "D:\testing\identicals\5\08NEW001.ASN"
+$ScriptPath = (Get-ChildItem $MyInvocation.MyCommand.Definition).DirectoryName
+$DefaultFile = Join-Path $ScriptPath 'data_files/28DEV001.ASN'
 
 if (-not $ASNFile) {
-        if ([Console]::IsInputRedirected) {
-                $ASNFile = [Console]::In.ReadLine()
-        } else {
-                $ASNFile = Read-Host "Enter the path to ASN file [Default: $DefaultFile]"
-        }
+    if ([Console]::IsInputRedirected) {
+        $ASNFile = [Console]::In.ReadLine()
+    } else {
+        $ASNFile = Read-Host "Enter the path to ASN file [Default: $DefaultFile]"
+    }
 }
 if (-not $ASNFile) {
-        $ASNFile = $DefaultFile
+    $ASNFile = $DefaultFile
 }
 
 $ASNFile = $ASNFile -replace '"',''
 
-if (test-path $ASNFile) {} Else { 
-	"No file found:"
-	exit 
+if (-not (Test-Path $ASNFile)) {
+    Write-Error "No file found: $ASNFile"
+    exit 1
 }
 
-$LeagueName = (gi $ASNFile).basename
-if (test-path "$ThePath\$LeagueName") {} else {
-	mkdir "$ThePath\$LeagueName"
+$LeagueName = (Get-Item $ASNFile).BaseName
+$OutputDir = Join-Path $ScriptPath $LeagueName
+if (-not (Test-Path $OutputDir)) {
+    New-Item -ItemType Directory -Path $OutputDir | Out-Null
 }
+
 
 # LOAD FILE
 $bytes  = [System.IO.File]::ReadAllBytes($ASNFile)
@@ -330,29 +327,28 @@ foreach ($o in $offsets | ? {$_.length -eq 312})
 
 	#put the teamid in row
 	$Abre = ($TeamInfo | ? {$_.TeamID -eq $TeamID}).Abre 
-	0..($row-1) | % { 
-		$data[$_]."0" = 1*$TeamId
-		$data[$_]."1" = $Abre
-		
-	}
+        0..($row-1) | % {
+                $data[$_]."0" = 1*$TeamId
+                $data[$_]."1" = $Abre
 
-	#$data | ft * -autosize
+        }
 
-	$OutputFileName = "$ThePath\$LeagueName\Roster-" +  ("{0:D2}" -f $TeamID) + ".csv"
-	
-	$data | Export-Csv -Path $OutputFileName -Force -notype
-	#fix headers
-	$data = import-csv -Path $OutputFileName -Header @('TeamID','ABRE','Jersey','ACT','AAA','AAAType','Low','Limbo','boLH','boRH','defLH','defRH','Pit') | select * -skip 1 #|#| select * | Export-Csv -Path $OutputFileName -Force -notype
+        #$data | ft * -autosize
 
+        $OutputFileName = Join-Path $OutputDir ("Roster-{0:D2}.csv" -f $TeamID)
 
-	$AllRosters += $data
-	$data | Export-Csv -Path $OutputFileName -Force -notype # -Delimiter "`t"
-	
-	#$data = $null
-	$OutputFileName | write-host -fore "RED"
+        $data | Export-Csv -Path $OutputFileName -Force -NoTypeInformation
+        #fix headers
+        $data = Import-Csv -Path $OutputFileName -Header @('TeamID','ABRE','Jersey','ACT','AAA','AAAType','Low','Limbo','boLH','boRH','defLH','defRH','Pit') | Select-Object * -Skip 1
 
-}	
+        $AllRosters += $data
+        $data | Export-Csv -Path $OutputFileName -Force -NoTypeInformation # -Delimiter "`t"
 
-# compile all 
-$AllRosters	|  Export-Csv -Path "$ThePath\$LeagueName\$LeagueName-Roster-All.csv" -Force -notype 
-"$ThePath\$LeagueName\$LeagueName-Roster-All.csv" | write-host -fore "RED"
+        #$data = $null
+        $OutputFileName | Write-Host -ForegroundColor "RED"
+
+}
+
+# compile all
+$AllRosters | Export-Csv -Path (Join-Path $OutputDir "$LeagueName-Roster-All.csv") -Force -NoTypeInformation
+(Join-Path $OutputDir "$LeagueName-Roster-All.csv") | Write-Host -ForegroundColor "RED"
