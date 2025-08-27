@@ -81,9 +81,10 @@ function Set-Inputs {
         $btn.Location = [Drawing.Point]::new(500, ($i * 30) - 1)
         $btn.Size = New-Object Drawing.Size(70,23)
         $btn.Text = 'Browse'
+        $btn.Tag = $txt
         $btn.Add_Click({
             $dlg = New-Object Windows.Forms.OpenFileDialog
-            if ($dlg.ShowDialog() -eq 'OK') { $txt.Text = $dlg.FileName }
+            if ($dlg.ShowDialog() -eq 'OK') { $this.Tag.Text = $dlg.FileName }
         })
         $pnlInputs.Controls.Add($btn)
     }
