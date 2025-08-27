@@ -49,10 +49,10 @@ Refined extractor that accepts file paths as parameters, sanitizes input, create
 **Usage**
 
 ```powershell
-pwsh ./ASN-Extractor-B.ps1
+pwsh ./ASN-Extractor-B.ps1 [-OutputDir <folder>]
 ```
 
-Provide the path to the `.ASN` file when prompted. The tool writes per-team CSV files and a consolidated roster to a new folder named after the league file.
+Provide the path to the `.ASN` file when prompted. The tool writes per-team CSV files and a consolidated roster to a new folder named after the league file. If `-OutputDir` is supplied (or an output folder is selected in the GUI), that folder is used as the base path for the league folder; otherwise the script's directory is used.
 
 ### `ASN-Importer-A.ps1`
 Imports edited roster CSVs back into an `.ASN` file. Backs up the original, rebuilds encryption tables, rewrites roster slots, batting orders, defensive alignments, and pitcher rotations, and outputs the updated file.

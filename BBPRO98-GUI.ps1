@@ -118,6 +118,9 @@ $btnRun.Add_Click({
         $psi.FileName = (Get-Command powershell).Source
     }
     $psi.Arguments = "-ExecutionPolicy Bypass -File `"$($sel.File)`""
+    if ($txtOut.Text -and $sel.Name -eq 'ASN-Extractor-B') {
+        $psi.Arguments += " -OutputDir `"$($txtOut.Text)`""
+    }
     $psi.UseShellExecute = $false
     $psi.RedirectStandardInput = $true
     $psi.RedirectStandardOutput = $true
