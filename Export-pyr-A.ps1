@@ -1,42 +1,50 @@
+param(
+    [string]$PYRFile
+)
+
 # This will export the pyr file
 #converting date (get-date(1-0-0001)).adddays(723507 -366)
 
 $erroractionpreference='inquire'
 $ThePath = (Get-ChildItem $MyInvocation.MyCommand.Definition).DirectoryName
 
-
 $DefaultFile = "D:\testing\trades\32nrb001.pyr"
 
-$ASNFile = Read-host "Enter the path to ASN file [Default: $DefaultFile]"
-if ($ASNFile -eq "")
-{
-	$ASNFile = $DefaultFile
+# Allow the script to read the file path from redirected input or prompt
+if (-not $PYRFile) {
+    if ([Console]::IsInputRedirected) {
+        $PYRFile = [Console]::In.ReadLine()
+    } else {
+        $PYRFile = Read-Host "Enter the path to PYR file [Default: $DefaultFile]"
+    }
 }
 
-$ASNFile = $ASNFile -replace '"',''
-
-if (test-path $ASNFile) {} Else { 
-	"No file found:"
-	exit 
+if (-not $PYRFile) {
+    $PYRFile = $DefaultFile
 }
 
-$LeagueName = (gi $ASNFile).basename
-if (test-path "$ThePath\$LeagueName") {} else {
-	mkdir "$ThePath\$LeagueName"
+$PYRFile = $PYRFile -replace '"',''
+
+if (-not (Test-Path $PYRFile)) {
+    "No file found:" | Write-Host
+    exit
 }
 
+$LeagueName = (Get-Item $PYRFile).BaseName
+if (-not (Test-Path "$ThePath\$LeagueName")) {
+    mkdir "$ThePath\$LeagueName" | Out-Null
+}
 
-$outFIle = "$ThePath\$LeagueName\$LeagueName-Players.csv"
-if (test-path $outFIle)
-{
-	remove-item $OutFile -force
+$outFile = "$ThePath\$LeagueName\$LeagueName-Players.csv"
+if (Test-Path $outFile) {
+    Remove-Item $outFile -Force
 }
 
 # LOAD FILE
-$bytes  = [System.IO.File]::ReadAllBytes($ASNFile)
-#$newbytes  = [System.IO.File]::ReadAllBytes($ASNFile)
-$FileSize = $($bytes.count)
-"FileSize: $($bytes.count)"
+$bytes  = [System.IO.File]::ReadAllBytes($PYRFile)
+#$newbytes  = [System.IO.File]::ReadAllBytes($PYRFile)
+$FileSize = $bytes.count
+"FileSize: $FileSize"
 
 # get start + offset
 # Each file is encrypted with these two bytes
@@ -183,8 +191,8 @@ while ($offset -lt ($FileSize - 1))
 $PlayerCSV = convertfrom-csv $PlayerData
 $PlayerCSV | select -first 2 | ft * -auto
 "writing to: $outfile "
-$PlayerCSV | export-csv $outFIle -notype
-$outFIle | write-host -fore "RED"
+$PlayerCSV | export-csv $outFile -notype
+$outFile | write-host -fore "RED"
 
 #gci $outfile
 
