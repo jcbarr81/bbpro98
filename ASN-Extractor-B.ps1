@@ -226,10 +226,10 @@ foreach ($o in ($Offsets | ? {$_.Length -eq 274 } | select -skip 1))
 	
 }
 ""
-$TeamInfo = $TeamInfo | convertfrom-csv 
+$TeamInfo = $TeamInfo | convertfrom-csv
 $TeamInfo | ft
 
-$OutputFileName = "$ThePath\$LeagueName\$LeagueName-Team-Info.csv"
+$OutputFileName = Join-Path $OutputDir "$LeagueName-Team-Info.csv"
 $TeamInfo | Export-Csv -Path $OutputFileName -Force -notype
 
 
