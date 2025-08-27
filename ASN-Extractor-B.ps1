@@ -1,4 +1,7 @@
 # This will Extract parts of ASN
+param(
+    [string]$ASNFile
+)
 $erroractionpreference='inquire'
 
 $ThePath = (Get-ChildItem $MyInvocation.MyCommand.Definition).DirectoryName
@@ -11,11 +14,15 @@ $DefaultFile = "D:\_SourceCode\ASSN\08AAA001.ASN"
 $DefaultFile = "D:\testing\Assn\32nrb001-ASN.DEFAULT"
 $DefaultFile = "D:\testing\identicals\5\08NEW001.ASN"
 
-
-$ASNFile = Read-host "Enter the path to ASN file [Default: $DefaultFile]"
-if ($ASNFile -eq "")
-{
-	$ASNFile = $DefaultFile
+if (-not $ASNFile) {
+        if ([Console]::IsInputRedirected) {
+                $ASNFile = [Console]::In.ReadLine()
+        } else {
+                $ASNFile = Read-Host "Enter the path to ASN file [Default: $DefaultFile]"
+        }
+}
+if (-not $ASNFile) {
+        $ASNFile = $DefaultFile
 }
 
 $ASNFile = $ASNFile -replace '"',''
