@@ -102,7 +102,13 @@ $btnRun.Add_Click({
     $sel = $scriptDefinitions | Where-Object { $_.Name -eq $combo.SelectedItem }
     if (-not $sel) { return }
     $psi = New-Object Diagnostics.ProcessStartInfo
-    $psi.FileName = 'pwsh'
+    # Use PowerShell Core if available, otherwise fall back to Windows PowerShell
+    $psCmd = Get-Command pwsh -ErrorAction SilentlyContinue
+    if ($psCmd) {
+        $psi.FileName = $psCmd.Source
+    } else {
+        $psi.FileName = (Get-Command powershell).Source
+    }
     $psi.Arguments = "-ExecutionPolicy Bypass -File `"$($sel.File)`""
     $psi.UseShellExecute = $false
     $psi.RedirectStandardInput = $true
